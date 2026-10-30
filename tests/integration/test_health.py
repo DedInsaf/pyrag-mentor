@@ -45,3 +45,12 @@ def test_cors_preflight_is_enabled(tmp_path: Path) -> None:
 
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "http://localhost:8501"
+
+
+def test_database_health_is_healthy(tmp_path: Path) -> None:
+    settings = Settings(log_dir=tmp_path)
+    with TestClient(create_app(settings)) as client:
+        response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "healthy"
+    assert response.json()["services"]["database"]["healthy"] is True

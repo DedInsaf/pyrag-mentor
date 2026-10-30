@@ -1,6 +1,6 @@
 [project]
 name = "pyrag-mentor"
-version = "0.2.0"
+version = "0.5.0"
 description = "Multi-agent RAG assistant for beginner Python 3.12 learners"
 authors = [{ name = "Student", email = "student@example.com" }]
 readme = "README.md"
@@ -38,6 +38,7 @@ nltk = ">=3.9,<4.0"
 python-json-logger = ">=2.0,<4.0"
 psycopg2-binary = ">=2.9,<3.0"
 streamlit = ">=1.38,<2.0"
+greenlet = ">=3.0,<4.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.3,<10.0"

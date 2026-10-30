@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pyrag_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pyrag_local_password}
+      POSTGRES_DB: ${POSTGRES_DB:-pyrag_db}
+    volumes:
+      - pyrag_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile
+    environment:
+      PROJECT_NAME: PyRAG Mentor
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      DEBUG: "false"
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-pyrag_user}:${POSTGRES_PASSWORD:-pyrag_local_password}@db:5432/${POSTGRES_DB:-pyrag_db}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-docker-development-secret-change-me}
+      LLM_PROVIDER: yandexgpt
+      YANDEX_API_KEY: ${YANDEX_API_KEY:-}
+      YANDEX_FOLDER_ID: ${YANDEX_FOLDER_ID:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pyrag_postgres_data:

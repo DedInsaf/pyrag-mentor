@@ -23,3 +23,7 @@ class RetrievalError(PyRAGMentorError):
 
 class AnswerValidationError(PyRAGMentorError):
     """Raised when a generated answer violates validation rules."""
+
+
+class ModelNotLoadedError(LLMServiceError):
+    """Raised when a selected local model has not been initialized."""

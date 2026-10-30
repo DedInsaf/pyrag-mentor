@@ -1,5 +1,8 @@
 # PyRAG Mentor — мультиагентный помощник по Python 3.12
 
+> Рабочая тема проекта. Команда может уточнить предметную область на следующих
+> этапах; слои БД, API и агентов отделены от неё и не потребуют полной переделки.
+
 ## Описание
 
 PyRAG Mentor отвечает на вопросы начинающих разработчиков по Python 3.12 и
@@ -102,8 +105,8 @@ poetry run python scripts/check_yandexgpt.py
 4. Скопируйте `.env.example` в `.env` и заполните ключ и идентификатор каталога.
 
 По умолчанию используется модель `yandexgpt/latest` через нативный REST API.
-Реализация клиента появится на этапе интеграции LLM; уже сейчас в проекте есть
-безопасный диагностический скрипт для проверки учётных данных.
+Нативный асинхронный клиент уже используется базовым агентом; диагностический
+скрипт позволяет отдельно проверить учётные данные.
 
 ## Запуск API
 
@@ -114,6 +117,10 @@ poetry run python run.py
 После запуска доступны:
 
 - `GET http://127.0.0.1:8000/healthz` — проверка состояния приложения;
+- `GET http://127.0.0.1:8000/health` — проверка API и соединения с БД;
+- `POST http://127.0.0.1:8000/auth/register` — регистрация;
+- `POST http://127.0.0.1:8000/auth/login` — получение JWT;
+- `GET http://127.0.0.1:8000/auth/me` — текущий пользователь;
 - `http://127.0.0.1:8000/docs` — интерактивная документация Swagger;
 - `http://127.0.0.1:8000/redoc` — альтернативная документация API.
 
@@ -127,7 +134,7 @@ curl http://127.0.0.1:8000/healthz
 классом `backend.core.config.Settings`. Логи одновременно выводятся в консоль
 и записываются в `logs/pyrag-mentor.log`; файл ротируется при достижении 5 МБ.
 
-Автоматические проверки этапа 2:
+Автоматические проверки:
 
 ```bash
 poetry run pytest
@@ -135,6 +142,32 @@ poetry run ruff check backend tests run.py
 poetry run black --check backend tests run.py
 poetry run mypy backend tests run.py
 ```
+
+## Запуск PostgreSQL и API в Docker
+
+Для Docker не нужен настоящий ключ YandexGPT: пустые значения безопасны до
+момента фактического вызова LLM.
+
+```bash
+docker compose -f infrastructure/docker-compose.yml up --build -d
+curl http://127.0.0.1:8000/health
+docker compose -f infrastructure/docker-compose.yml down
+```
+
+PostgreSQL хранит данные в именованном томе `postgres_data`, поэтому обычный
+`down` их не удаляет. Пароли в Compose предназначены только для локальной
+разработки; в публичном репозитории лежат лишь примеры и безопасные значения.
+
+## Реализованные агенты
+
+- `BaseAgent` задаёт единый асинхронный контракт и выбор YandexGPT или
+  HuggingFace; для локальной генерации фиксируется `seed=42`.
+- `Validator` выполняет детерминированные проверки ответа.
+- `Critic` разбирает JSON-оценку устойчивым сканером и помечает невалидный
+  ответ как `critic_failed`.
+- `Editor` не делает лишний вызов LLM, если критик упал или замечаний нет.
+- `Supervisor` выбирает бюджет итераций по начальной оценке, улучшает ответ и
+  откатывается к лучшей версии при ухудшении, сохраняя журнал рассуждений.
 
 ## Структура проекта
 
@@ -167,9 +200,9 @@ pyrag-mentor/
 
 - [x] Этап 1: тема, структура, Poetry, конфигурация окружения и README
 - [x] Этап 2: архитектура и каркас FastAPI
-- [ ] Этап 3: база данных
-- [ ] Этап 4: аутентификация и роли
-- [ ] Этап 5: базовый Agent и Supervisor
+- [x] Этап 3: асинхронная БД, пять моделей, Docker Compose и DB healthcheck
+- [x] Этап 4: регистрация, bcrypt, JWT, `/auth/me` и роли
+- [x] Этап 5: базовые агенты и Supervisor с адаптивным бюджетом и rollback
 - [ ] Этап 6: Validator
 - [ ] Этап 7: Critic (LLM-as-a-Judge)
 - [ ] Этап 8: Editor
@@ -202,7 +235,24 @@ pyrag-mentor/
 - [x] Логи выводятся в консоль и ротируемый файл.
 - [x] Добавлены автоматические тесты конфигурации, API и логирования.
 
+## Критерии готовности этапов 3–5
+
+- [x] PostgreSQL и приложение описаны в Docker Compose, данные БД сохраняются
+  в именованном томе.
+- [x] Созданы пять SQLAlchemy-моделей предметной области и async-сессии;
+  `/health` возвращает `503`, если БД недоступна.
+- [x] Пароли хешируются bcrypt, строки длиннее 72 UTF-8 байт отклоняются,
+  JWT имеет срок действия.
+- [x] Реализованы регистрация, вход, текущий пользователь и зависимости ролей.
+- [x] Реализован независимый от агентских фреймворков цикл
+  Validator → Critic → Editor → Supervisor.
+- [x] Покрыты успешные и ошибочные сценарии на SQLite; полный набор содержит
+  более 15 сценариев этапа 5.
+
 ## Источники требований
 
 - [Общее задание курса](https://github.com/CodeHunterOfficial/ArabovMKDeep/blob/main/DL-2026/%D0%97%D0%B0%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5_%D0%B4%D0%BB%D1%8F_%D1%81%D1%82%D1%83%D0%B4%D0%B5%D0%BD%D1%82%D0%BE%D0%B2.ipynb)
 - [Методичка этапа 1](https://github.com/CodeHunterOfficial/ArabovMKDeep/blob/main/IIRSI/Project/Step_1.ipynb)
+- [Методичка этапа 3](https://github.com/CodeHunterOfficial/ArabovMKDeep/blob/main/IIRSI/Project/Step_3.ipynb)
+- [Методичка этапа 4](https://github.com/CodeHunterOfficial/ArabovMKDeep/blob/main/IIRSI/Project/Step_4.ipynb)
+- [Методичка этапа 5](https://github.com/CodeHunterOfficial/ArabovMKDeep/blob/main/IIRSI/Project/Step_5.ipynb)

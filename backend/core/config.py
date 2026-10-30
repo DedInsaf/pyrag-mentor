@@ -34,6 +34,7 @@ class Settings(BaseSettings):
         default="sqlite+aiosqlite:///./pyrag_mentor.db",
         validation_alias="DATABASE_URL",
     )
+    database_echo: bool = Field(default=False, validation_alias="DATABASE_ECHO")
 
     llm_provider: LLMProvider = Field(
         default=LLMProvider.YANDEX_GPT,
@@ -75,6 +76,7 @@ class Settings(BaseSettings):
         default="Qwen/Qwen2.5-7B-Instruct",
         validation_alias="HF_MODEL",
     )
+    agent_engine: str = Field(default="auto", validation_alias="AGENT_ENGINE")
 
     embedding_model: str = Field(
         default="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
@@ -149,6 +151,17 @@ class Settings(BaseSettings):
             raise ValueError(f"LOG_LEVEL must be one of: {', '.join(sorted(allowed))}")
         return normalized
 
+    @field_validator("agent_engine")
+    @classmethod
+    def validate_agent_engine(cls, value: str) -> str:
+        normalized = value.lower()
+        allowed = {"auto", "yandexgpt", "huggingface"}
+        if normalized not in allowed:
+            raise ValueError(
+                f"AGENT_ENGINE must be one of: {', '.join(sorted(allowed))}"
+            )
+        return normalized
+
     @property
     def cors_origin_list(self) -> list[str]:
         """Return normalized origins suitable for FastAPI CORSMiddleware."""
@@ -162,6 +175,18 @@ class Settings(BaseSettings):
         """Return the configured rotating log file path."""
 
         return self.log_dir / self.log_file_name
+
+    @property
+    def async_database_url(self) -> str:
+        """Normalize common sync URLs for SQLAlchemy's async drivers."""
+
+        if self.database_url.startswith("postgresql://"):
+            return self.database_url.replace(
+                "postgresql://", "postgresql+asyncpg://", 1
+            )
+        if self.database_url.startswith("sqlite:///"):
+            return self.database_url.replace("sqlite:///", "sqlite+aiosqlite:///", 1)
+        return self.database_url
 
 
 @lru_cache

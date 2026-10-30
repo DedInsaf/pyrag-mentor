@@ -2,7 +2,7 @@
 
 from enum import StrEnum
 
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.5.0"
 API_PREFIX = "/api/v1"
 HEALTHCHECK_PATH = "/healthz"
 SUPPORTED_PYTHON_VERSIONS = ("3.12",)
@@ -10,6 +10,10 @@ DEFAULT_CORS_ORIGINS = (
     "http://localhost:3000",
     "http://localhost:8501",
 )
+CRITIC_PASS_THRESHOLD = 7.0
+ADAPTIVE_BUDGET_LOW = 4.0
+ADAPTIVE_BUDGET_MID = 7.0
+DEFAULT_GENERATION_SEED = 42
 
 
 class LLMProvider(StrEnum):
