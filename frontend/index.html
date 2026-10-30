@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="PyRAG Mentor — помощник по Python 3.12">
+    <title>PyRAG Mentor</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <div class="background-orb orb-one"></div>
+    <div class="background-orb orb-two"></div>
+
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="PyRAG Mentor — главная">
+        <span class="brand-mark">Py</span>
+        <span>
+          <strong>PyRAG Mentor</strong>
+          <small>Ваш помощник по Python 3.12</small>
+        </span>
+      </a>
+      <div class="server-status" id="server-status" aria-live="polite">
+        <span class="status-dot"></span>
+        <span>Проверяем сервер…</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">Обучение с проверкой качества</div>
+        <h1>Разбирайтесь в Python<br><span>вместе с AI-наставником</span></h1>
+        <p>
+          Задавайте вопросы, проверяйте примеры кода и получайте понятные
+          объяснения. Зарегистрируйтесь, чтобы начать работу.
+        </p>
+        <div class="features" aria-label="Возможности проекта">
+          <div><span>01</span><p><strong>Понятные ответы</strong><small>Без лишней сложности</small></p></div>
+          <div><span>02</span><p><strong>Проверка агентами</strong><small>Validator, Critic и Editor</small></p></div>
+          <div><span>03</span><p><strong>Безопасный профиль</strong><small>Пароли защищены bcrypt</small></p></div>
+        </div>
+      </section>
+
+      <section class="auth-card" aria-labelledby="card-title">
+        <div id="auth-view">
+          <div class="tabs" role="tablist" aria-label="Авторизация">
+            <button class="tab active" data-tab="register" role="tab" aria-selected="true">Регистрация</button>
+            <button class="tab" data-tab="login" role="tab" aria-selected="false">Вход</button>
+          </div>
+
+          <div class="card-heading">
+            <h2 id="card-title">Создать аккаунт</h2>
+            <p id="card-subtitle">Заполните данные — это займёт меньше минуты.</p>
+          </div>
+
+          <div class="message hidden" id="form-message" role="alert"></div>
+
+          <form id="register-form" novalidate>
+            <label>
+              <span>Имя и фамилия <small>необязательно</small></span>
+              <input name="full_name" autocomplete="name" placeholder="Иван Петров" maxlength="120">
+            </label>
+            <label>
+              <span>Имя пользователя</span>
+              <input name="username" autocomplete="username" placeholder="ivan_dev" minlength="3" maxlength="64" required>
+            </label>
+            <label>
+              <span>Электронная почта</span>
+              <input name="email" type="email" autocomplete="email" placeholder="name@example.com" required>
+            </label>
+            <label>
+              <span>Пароль</span>
+              <div class="password-field">
+                <input name="password" type="password" autocomplete="new-password" placeholder="Не менее 8 символов" minlength="8" required>
+                <button class="password-toggle" type="button" aria-label="Показать пароль">Показать</button>
+              </div>
+              <small class="hint">Минимум 8 символов, заглавная буква и цифра</small>
+            </label>
+            <button class="primary-button" type="submit"><span>Создать аккаунт</span><b>→</b></button>
+          </form>
+
+          <form id="login-form" class="hidden" novalidate>
+            <label>
+              <span>Электронная почта</span>
+              <input name="email" type="email" autocomplete="email" placeholder="name@example.com" required>
+            </label>
+            <label>
+              <span>Пароль</span>
+              <div class="password-field">
+                <input name="password" type="password" autocomplete="current-password" placeholder="Введите пароль" required>
+                <button class="password-toggle" type="button" aria-label="Показать пароль">Показать</button>
+              </div>
+            </label>
+            <button class="primary-button" type="submit"><span>Войти</span><b>→</b></button>
+          </form>
+        </div>
+
+        <div id="profile-view" class="profile-view hidden">
+          <div class="success-icon">✓</div>
+          <p class="eyebrow">Авторизация выполнена</p>
+          <h2>Добро пожаловать, <span id="profile-name">пользователь</span>!</h2>
+          <p>Аккаунт готов. На следующих этапах здесь появится диалог с AI-наставником.</p>
+          <dl class="profile-details">
+            <div><dt>Email</dt><dd id="profile-email">—</dd></div>
+            <div><dt>Логин</dt><dd id="profile-username">—</dd></div>
+            <div><dt>Роль</dt><dd id="profile-role">—</dd></div>
+          </dl>
+          <button class="secondary-button" id="logout-button" type="button">Выйти из аккаунта</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>PyRAG Mentor · учебный проект</span>
+      <a href="/docs">API-документация</a>
+    </footer>
+  </body>
+</html>

@@ -3,9 +3,12 @@ from __future__ import annotations
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from backend.api.routes import auth, health
 from backend.core.config import Settings, get_settings
@@ -15,6 +18,7 @@ from backend.db.session import async_engine
 from backend.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
+FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -54,6 +58,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     application.include_router(health.router)
     application.include_router(auth.router)
+    application.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+    @application.get("/", include_in_schema=False)
+    async def frontend() -> FileResponse:
+        return FileResponse(FRONTEND_DIR / "index.html")
 
     return application
 

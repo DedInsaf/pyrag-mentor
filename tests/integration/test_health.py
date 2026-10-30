@@ -54,3 +54,19 @@ def test_database_health_is_healthy(tmp_path: Path) -> None:
     assert response.status_code == 200
     assert response.json()["status"] == "healthy"
     assert response.json()["services"]["database"]["healthy"] is True
+
+
+def test_frontend_and_styles_are_served(tmp_path: Path) -> None:
+    settings = Settings(log_dir=tmp_path)
+    with TestClient(create_app(settings)) as client:
+        page = client.get("/")
+        styles = client.get("/static/styles.css")
+        script = client.get("/static/app.js")
+
+    assert page.status_code == 200
+    assert "PyRAG Mentor" in page.text
+    assert 'id="register-form"' in page.text
+    assert styles.status_code == 200
+    assert "--accent" in styles.text
+    assert script.status_code == 200
+    assert '"/auth/register"' in script.text

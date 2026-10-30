@@ -19,6 +19,7 @@ ENV PATH="/app/.venv/bin:${PATH}" \
 WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 COPY backend ./backend
+COPY frontend ./frontend
 COPY run.py ./run.py
 
 RUN useradd --create-home --uid 10001 appuser \
