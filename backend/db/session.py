@@ -16,6 +16,7 @@ settings = get_settings()
 engine_options: dict[str, Any] = {
     "echo": settings.debug or settings.database_echo,
     "pool_pre_ping": True,
+    "hide_parameters": True,
 }
 if not settings.async_database_url.startswith("sqlite"):
     engine_options.update(pool_size=10, max_overflow=20)

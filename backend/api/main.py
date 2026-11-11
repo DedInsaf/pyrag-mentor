@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from backend.api.routes import auth, health
+from backend.api.routes import auth, health, weather, weather_admin
 from backend.core.config import Settings, get_settings
 from backend.core.constants import APP_VERSION
 from backend.db.models import Base
@@ -58,6 +58,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     application.include_router(health.router)
     application.include_router(auth.router)
+    application.include_router(weather.router)
+    application.include_router(weather_admin.router)
     application.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
     @application.get("/", include_in_schema=False)

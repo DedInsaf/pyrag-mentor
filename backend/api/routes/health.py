@@ -1,9 +1,13 @@
 """Liveness and database-aware health endpoints."""
 
+import asyncio
+import os
 from typing import Annotated
 
+import httpx
 from fastapi import APIRouter, Depends, Response, status
 from pydantic import BaseModel
+from redis.asyncio import Redis
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -50,9 +54,39 @@ async def health(
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         database = DatabaseHealth(healthy=False, error=type(error).__name__)
         health_status = "unhealthy"
+    services = {"database": database}
+    if os.getenv("WEATHER_CHECK_SERVICES") == "true":
+
+        async def probe(name: str, url: str) -> tuple[str, DatabaseHealth]:
+            try:
+                if name == "redis":
+                    async with Redis.from_url(
+                        url, socket_timeout=2, socket_connect_timeout=2
+                    ) as client:
+                        await client.ping()
+                else:
+                    async with httpx.AsyncClient(timeout=2) as client:
+                        (await client.get(url)).raise_for_status()
+                return name, DatabaseHealth(healthy=True)
+            except Exception as exc:
+                return name, DatabaseHealth(healthy=False, error=type(exc).__name__)
+
+        services.update(
+            await asyncio.gather(
+                probe("redis", settings.redis_url),
+                probe(
+                    "qdrant",
+                    os.getenv("WEATHER_QDRANT_URL", "http://localhost:6333")
+                    + "/readyz",
+                ),
+            )
+        )
+        if any(not service.healthy for service in services.values()):
+            response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+            health_status = "unhealthy"
     return HealthResponse(
         status=health_status,
         project=settings.project_name,
         version=APP_VERSION,
-        services={"database": database},
+        services=services,
     )

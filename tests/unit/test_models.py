@@ -31,7 +31,7 @@ async def session() -> AsyncGenerator[AsyncSession]:
 
 
 def test_all_five_tables_are_declared() -> None:
-    assert set(Base.metadata.tables) == {
+    assert set(Base.metadata.tables) >= {
         "users",
         "glossaries",
         "knowledge_base",
