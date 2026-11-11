@@ -36,6 +36,9 @@ logs/*
 data/*
 !data/import/
 data/import/*
+!data/import/README.md
+/eval_datasets/
+celerybeat-schedule*
 !data/import/*.csv
 !data/import/*.json
 !data/import/.gitkeep
