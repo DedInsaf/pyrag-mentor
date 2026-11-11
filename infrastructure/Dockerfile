@@ -20,6 +20,8 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 COPY backend ./backend
 COPY frontend ./frontend
+COPY streamlit_app ./streamlit_app
+COPY scripts ./scripts
 COPY run.py ./run.py
 
 RUN useradd --create-home --uid 10001 appuser \

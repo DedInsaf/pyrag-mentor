@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="PyRAG Mentor — помощник по Python 3.12">
-    <title>PyRAG Mentor</title>
+    <meta name="description" content="Визуальный прогноз погоды по фотографии">
+    <title>Погода в кадре</title>
     <link rel="stylesheet" href="/static/styles.css">
     <script src="/static/app.js" defer></script>
   </head>
@@ -13,11 +13,11 @@
     <div class="background-orb orb-two"></div>
 
     <header class="site-header">
-      <a class="brand" href="/" aria-label="PyRAG Mentor — главная">
-        <span class="brand-mark">Py</span>
+      <a class="brand" href="/" aria-label="Погода в кадре — главная">
+        <span class="brand-mark" aria-hidden="true">☁</span>
         <span>
-          <strong>PyRAG Mentor</strong>
-          <small>Ваш помощник по Python 3.12</small>
+          <strong>Погода в кадре</strong>
+          <small>Визуальный прогноз по фотографии</small>
         </span>
       </a>
       <div class="server-status" id="server-status" aria-live="polite">
@@ -28,17 +28,32 @@
 
     <main>
       <section class="hero">
-        <div class="eyebrow">Обучение с проверкой качества</div>
-        <h1>Разбирайтесь в Python<br><span>вместе с AI-наставником</span></h1>
+        <h1>Как будет выглядеть улица <span>через несколько часов?</span></h1>
         <p>
-          Задавайте вопросы, проверяйте примеры кода и получайте понятные
-          объяснения. Зарегистрируйтесь, чтобы начать работу.
+          Загрузите фото или выберите место из каталога, чтобы увидеть
+          визуализацию прогноза.
         </p>
-        <div class="features" aria-label="Возможности проекта">
-          <div><span>01</span><p><strong>Понятные ответы</strong><small>Без лишней сложности</small></p></div>
-          <div><span>02</span><p><strong>Проверка агентами</strong><small>Validator, Critic и Editor</small></p></div>
-          <div><span>03</span><p><strong>Безопасный профиль</strong><small>Пароли защищены bcrypt</small></p></div>
-        </div>
+        <section id="weather-view" class="hidden">
+          <form id="forecast-form">
+            <label><span>Место из каталога</span><select name="place_id" id="place-choice"><option value="">Своё фото</option></select></label>
+            <fieldset id="photo-fields">
+              <label><span>Фото локации</span><input name="file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+              <div class="weather-row">
+                <label><span>Широта</span><input name="latitude" type="number" step="any" min="-90" max="90" required></label>
+                <label><span>Долгота</span><input name="longitude" type="number" step="any" min="-180" max="180" required></label>
+              </div>
+              <button type="button" class="secondary-button" id="locate">Подставить мою геолокацию</button>
+            </fieldset>
+            <label><span>Через сколько часов</span><input name="hours" type="number" min="1" max="48" value="3" required></label>
+            <label class="weather-check"><input type="checkbox" id="weather-ai"> AI-редактирование с отправкой фото в Hugging Face / fal.ai</label>
+            <button class="primary-button" type="submit"><span>Показать прогноз</span></button>
+          </form>
+          <p id="weather-message" role="status"></p>
+          <div class="weather-row hidden" id="weather-photos">
+            <figure><img id="weather-original" alt="Исходное фото"><figcaption>Исходное фото</figcaption></figure>
+            <figure><img id="weather-result" alt="Визуализация погоды"><figcaption>Визуализация прогноза</figcaption></figure>
+          </div>
+        </section>
       </section>
 
       <section class="auth-card" aria-labelledby="card-title">
@@ -99,7 +114,7 @@
           <div class="success-icon">✓</div>
           <p class="eyebrow">Авторизация выполнена</p>
           <h2>Добро пожаловать, <span id="profile-name">пользователь</span>!</h2>
-          <p>Аккаунт готов. На следующих этапах здесь появится диалог с AI-наставником.</p>
+          <p>Прогноз доступен на этой странице. Каталог вкладов и модерация открываются в кабинете Streamlit на порту 8501.</p>
           <dl class="profile-details">
             <div><dt>Email</dt><dd id="profile-email">—</dd></div>
             <div><dt>Логин</dt><dd id="profile-username">—</dd></div>
@@ -111,8 +126,9 @@
     </main>
 
     <footer>
-      <span>PyRAG Mentor · учебный проект</span>
+      <span>Погода в кадре · PyRAG Mentor</span>
       <a href="/docs">API-документация</a>
     </footer>
+    <script src="/static/weather.js" defer></script>
   </body>
 </html>

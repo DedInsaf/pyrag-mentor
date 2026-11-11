@@ -18,8 +18,8 @@ services:
     build:
       context: ..
       dockerfile: infrastructure/Dockerfile
-    environment:
-      PROJECT_NAME: PyRAG Mentor
+    environment: &weather_env
+      PROJECT_NAME: Погода в кадре
       API_HOST: 0.0.0.0
       API_PORT: 8000
       DEBUG: "false"
@@ -28,11 +28,20 @@ services:
       LLM_PROVIDER: yandexgpt
       YANDEX_API_KEY: ${YANDEX_API_KEY:-}
       YANDEX_FOLDER_ID: ${YANDEX_FOLDER_ID:-}
+      HF_TOKEN: ${HF_TOKEN:-}
+      HF_MODEL: ${HF_MODEL:-Qwen/Qwen2.5-0.5B-Instruct}
+      REDIS_URL: redis://redis:6379/0
+      WEATHER_QDRANT_URL: http://qdrant:6333
+      WEATHER_CHECK_SERVICES: "true"
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
     healthcheck:
       test:
         - CMD
@@ -44,5 +53,64 @@ services:
       retries: 10
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - redis_data:/data
+
+  qdrant:
+    image: qdrant/qdrant:v1.15.5
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  worker:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile
+    environment: *weather_env
+    command: ["celery", "-A", "backend.worker.celery_app:app", "worker", "--pool=solo", "--loglevel=INFO"]
+    depends_on:
+      app:
+        condition: service_healthy
+
+  beat:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile
+    environment: *weather_env
+    command: ["celery", "-A", "backend.worker.celery_app:app", "beat", "--schedule=/tmp/weather-beat", "--loglevel=INFO"]
+    depends_on:
+      app:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.28-alpine
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+
+  streamlit:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile
+    environment:
+      WEATHER_API_URL: http://app:8000
+    command: ["streamlit", "run", "streamlit_app/app.py", "--server.address=0.0.0.0", "--server.port=8501"]
+    ports:
+      - "127.0.0.1:8501:8501"
+    depends_on:
+      app:
+        condition: service_healthy
+
 volumes:
   pyrag_postgres_data:
+  redis_data:
+  qdrant_data:

@@ -53,6 +53,7 @@ function setLoading(form, loading) {
 function showProfile(user) {
   authView.classList.add("hidden");
   profileView.classList.remove("hidden");
+  document.dispatchEvent(new Event("weather:login"));
   document.querySelector("#profile-name").textContent = user.full_name || user.username;
   document.querySelector("#profile-email").textContent = user.email;
   document.querySelector("#profile-username").textContent = user.username;
@@ -135,6 +136,7 @@ document.querySelector("#logout-button").addEventListener("click", () => {
   profileView.classList.add("hidden");
   authView.classList.remove("hidden");
   clearMessage();
+  document.dispatchEvent(new Event("weather:logout"));
 });
 
 async function checkHealth() {

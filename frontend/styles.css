@@ -195,3 +195,13 @@ footer a:hover { color: var(--accent); }
   .auth-card { animation: enter .6s .08s ease-out both; }
   @keyframes enter { from { opacity: 0; transform: translateY(16px); } }
 }
+
+#weather-view { margin-top: 24px; }
+#weather-view select { width: 100%; padding: 12px; border-radius: 9px; }
+#weather-view fieldset { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 9px; }
+.weather-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.weather-row figure { margin: 0; }
+.weather-row img { width: 100%; height: auto; border-radius: 9px; }
+.weather-check { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.weather-check input { width: auto; }
+#weather-message { color: var(--muted); }
