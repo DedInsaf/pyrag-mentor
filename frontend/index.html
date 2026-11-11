@@ -37,6 +37,7 @@
           <form id="forecast-form">
             <label><span>Место из каталога</span><select name="place_id" id="place-choice"><option value="">Своё фото</option></select></label>
             <fieldset id="photo-fields">
+              <label><span>Название места</span><input name="title" placeholder="Например, Казань" maxlength="120"></label>
               <label><span>Фото локации</span><input name="file" type="file" accept="image/jpeg,image/png,image/webp"></label>
               <div class="weather-row">
                 <label><span>Широта</span><input name="latitude" type="number" step="any" min="-90" max="90" required></label>

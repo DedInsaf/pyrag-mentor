@@ -348,6 +348,39 @@ async def batch(
     return result
 
 
+class MultipleHorizons(BaseModel):
+    place_id: str = Field(min_length=1, max_length=36)
+    hours: list[Annotated[int, Field(ge=1, le=48)]] = Field(min_length=1, max_length=6)
+
+
+@router.post("/weather/multi")
+async def multiple_horizons(
+    request: MultipleHorizons,
+    user: CurrentUser,
+    db: SessionDependency,
+) -> list[dict[str, Any]]:
+    place = await db.get(PlacePhoto, request.place_id)
+    if place is None or place.status != "approved":
+        raise HTTPException(404, "Место не найдено")
+    results: list[dict[str, Any]] = []
+    for hours in dict.fromkeys(request.hours):
+        try:
+            value = await forecast(place.latitude, place.longitude, hours)
+        except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError):
+            results.append({"hours": hours, "error": "Прогноз недоступен"})
+            continue
+        picture = await asyncio.to_thread(render_preview, place.content, value)
+        results.append(
+            {
+                "hours": hours,
+                "forecast": value.model_dump(mode="json"),
+                "condition": value.condition,
+                "image": base64.b64encode(picture).decode(),
+            }
+        )
+    return results
+
+
 class EnsembleLocation(BatchLocation):
     title: str = Field(default="Локация", min_length=1, max_length=120)
     engines: list[Engine] = Field(min_length=2, max_length=4)

@@ -50,6 +50,9 @@ weatherForm.addEventListener("submit", async (event) => {
     return;
   } else {
     data.delete("place_id");
+    const title = data.get("title").trim();
+    if (title) data.set("title", title);
+    else data.delete("title");
   }
   data.set("image_engine", document.querySelector("#weather-ai").checked ? "ai" : "preview");
   const submit = weatherForm.querySelector('[type="submit"]');

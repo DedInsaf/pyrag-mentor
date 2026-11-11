@@ -130,6 +130,16 @@ async def test_weather_journey(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
             == 10
         )
         assert client.get("/weather/places").json()[0]["title"] == "Парк"
+        multi = client.post(
+            "/weather/multi",
+            headers=headers,
+            json={
+                "place_id": photo["id"],
+                "hours": [3, 6, 3],
+            },
+        )
+        assert multi.status_code == 200
+        assert [row["hours"] for row in multi.json()] == [3, 6]
         assert client.get(f'/weather/places/{photo["id"]}/image').status_code == 200
         assert (
             client.post(
