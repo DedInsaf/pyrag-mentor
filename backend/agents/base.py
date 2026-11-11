@@ -10,7 +10,7 @@ from backend.core.config import Settings, get_settings
 from backend.core.constants import DEFAULT_GENERATION_SEED
 from backend.core.exceptions import ConfigurationError, ModelNotLoadedError
 from backend.utils.async_utils import retry
-from backend.utils.hf_llm import HuggingFaceLLM
+from backend.utils.hf_llm import HuggingFaceLLM, get_hf_llm
 from backend.utils.http_client import get_http_client
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ class Agent(BaseAgent):
         self.engine = self._resolve_engine(engine or self.settings.agent_engine)
         self.hf_llm: HuggingFaceLLM | None = None
         if self.engine == "huggingface":
-            self.hf_llm = HuggingFaceLLM(self.settings.hf_model)
+            self.hf_llm = get_hf_llm(self.settings.hf_model)
 
     def _resolve_engine(self, requested: str) -> str:
         normalized = (requested or "auto").lower()

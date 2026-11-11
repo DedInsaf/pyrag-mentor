@@ -11,12 +11,6 @@ class Editor(Agent):
 
     temperature = 0.3
 
-    async def _call_llm(self, prompt: str) -> str:
-        """Temporary no-op stub; real model generation is added later."""
-
-        del prompt
-        return ""
-
     async def process(self, state: AgentState) -> AgentState:
         issues = [
             *state.get("validator_errors", []),

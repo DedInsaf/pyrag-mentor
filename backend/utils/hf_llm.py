@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import asyncio
+import threading
+from functools import lru_cache
 from typing import Any
+
+_generation_lock = threading.Lock()
 
 
 class HuggingFaceLLM:
@@ -41,4 +45,17 @@ class HuggingFaceLLM:
             )
             return str(result[0]["generated_text"]).strip()
 
-        return await asyncio.to_thread(run)
+        def locked_run() -> str:
+            with _generation_lock:
+                return run()
+
+        return await asyncio.to_thread(locked_run)
+
+
+@lru_cache(maxsize=1)
+def get_hf_llm(model_name: str) -> HuggingFaceLLM:
+    return HuggingFaceLLM(model_name)
+
+
+def unload_hf_llm() -> None:
+    get_hf_llm.cache_clear()

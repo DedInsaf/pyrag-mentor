@@ -56,26 +56,10 @@ class Critic(Agent):
                 return parsed
         raise ValueError("Critic response does not contain a valid JSON object")
 
-    async def _call_llm(self, prompt: str) -> str:
-        """Temporary deterministic stub; replaced by the real call later."""
-
-        del prompt
-        return json.dumps(
-            {
-                "relevance": 8.0,
-                "correctness": 8.0,
-                "completeness": 8.0,
-                "clarity": 8.0,
-                "grounding": 8.0,
-                "overall_score": 8.0,
-                "reasoning": "Stage-5 deterministic critic stub",
-                "suggestions": [],
-            }
-        )
-
     async def process(self, state: AgentState) -> AgentState:
         prompt = (
-            "Evaluate this QA answer and return JSON with scores 0-10.\n"
+            "Evaluate this QA answer. Return only a JSON object with overall_score "
+            "(0–10), reasoning (string), and suggestions (array of strings).\n"
             f"Question: {state.get('question', '')}\n"
             f"Answer: {state.get('answer', '')}\n"
             f"Sources: {state.get('sources', [])}"
@@ -104,7 +88,7 @@ class Critic(Agent):
                 },
                 "failed": False,
             }
-        except (KeyError, TypeError, ValueError):
+        except Exception:
             result = {
                 "overall_score": None,
                 "reasoning": "Critic response parsing failed",

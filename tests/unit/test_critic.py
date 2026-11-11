@@ -15,8 +15,13 @@ def test_parse_json_from_markdown_text() -> None:
     assert parsed["overall_score"] == 8
 
 
-async def test_valid_stub_sets_score() -> None:
+async def test_valid_response_sets_score(monkeypatch: pytest.MonkeyPatch) -> None:
     critic = Critic(engine="yandexgpt")
+
+    async def valid(_: str) -> str:
+        return '{"overall_score": 8}'
+
+    monkeypatch.setattr(critic, "_call_llm", valid)
     state = await critic.process({"question": "Q", "answer": "A"})
     assert state["critic_score"] == 8.0
     assert state["critic_failed"] is False
